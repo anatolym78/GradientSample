@@ -33,12 +33,16 @@ class GradientScene(QGraphicsScene):
         self.left_button_pressed = False
         self.start_point = QPointF(0, 0)
 
-        checkpoint = torch.load("model_state.pth")
-        self.model = SimpleModule()
-        self.model.load_state_dict(checkpoint["model_state"])
-        self.model.eval()
+        self.models = []
+        net_suffices = ['h', 'v']
+        for i_model in range(0, 2):
+            check_point = torch.load(f"model_state_{net_suffices[i_model]}.pth")
+            model = SimpleModule()
+            model.load_state_dict(check_point["model_state"])
+            model.eval()
+            self.models.append(model)
 
-    def calculate_angle(self, pos, stretch, angle):
+    def calculate_angle_predict(self, pos, stretch, angle):
         to_float_tensor = v2.ToDtype(torch.float32, scale=False)
         to_normalize = v2.Normalize([128], [128])
 
@@ -49,11 +53,11 @@ class GradientScene(QGraphicsScene):
         tensor_image = to_float_tensor(tensor_image)
         tensor_image = to_normalize(tensor_image)
 
-        angle_predict = self.model(tensor_image)
+        angle_predicts = []
+        for model in self.models:
+            angle_predicts.append(model(tensor_image))
 
-        angle_predict *= 90
-
-        return angle_predict.item()
+        return angle_predicts[0].item()*90, (1 - angle_predicts[1].item())*180
 
     def mouseMoveEvent(self, event: QGraphicsSceneMouseEvent) -> None:
         end_pos = event.scenePos()
@@ -65,15 +69,18 @@ class GradientScene(QGraphicsScene):
 
             self.real_direction_line_item.setLine(QLineF(self.start_point, end_pos))
             angle = self.normalize_angle(math.degrees(math.atan2(dp.y(), dp.x())))
-            stretch = self.gradient_item.make_gradient(self.start_point, end_pos)
+            stretch = self.gradient_item.update_gradient(self.start_point, end_pos)
             self.text_item.setPlainText(f"angle: {angle:.0f}, width: {stretch:.1f}")
 
             if QVector2D(end_pos).distanceToPoint(QVector2D(self.start_point)) > 25:
-                angle_predict = self.calculate_angle(self.start_point, stretch, angle)
-                self.text_item.setPlainText(f"angle: {angle:.0f}, angle predict: {angle_predict:.0f}, width: {stretch:.1f}")
-                self.predict_direction_line_item.setLine(self.get_predict_line(self.start_point, angle_predict))
-            self.update()
+                angle_predict_h, angle_predict_v = self.calculate_angle_predict(self.start_point, stretch, angle)
+                result_angle = GradientScene.choose_angle_predict(angle_predict_h, angle_predict_v)
+                self.text_item.setPlainText(f"angle real/predicted: {angle:.0f}/{angle_predict_h:.0f},{angle_predict_v:.0f}, width: {stretch:.1f}")
+        else:
+            if self.gradient_item.valid_rect.contains(event.scenePos().toPoint()):
+                self.start_pos_item.setPos(event.scenePos())
 
+        self.update()
         pass
 
     def get_predict_line(self, pos, angle) -> QLineF:
@@ -83,8 +90,22 @@ class GradientScene(QGraphicsScene):
         ey = math.sin(angle_radians)
 
         size = 0.4*self.gradient_item.item_size
+        size = 0.4*self.gradient_item.item_size
 
         return QLineF(pos - size*QPointF(ex, ey), pos + size*QPointF(ex, ey))
+
+    def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.left_button_pressed = True
+            self.start_point = event.scenePos()
+
+        pass
+
+    def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.left_button_pressed = False
+
+        pass
 
     @staticmethod
     def normalize_angle(angle):
@@ -96,17 +117,9 @@ class GradientScene(QGraphicsScene):
 
         return angle
 
-    def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.left_button_pressed = True
-            self.start_point = event.scenePos()
-            self.start_pos_item.setPos(event.scenePos())
+    @staticmethod
+    def choose_angle_predict(horizontal_angle, vertical_angle):
 
-        pass
-
-    def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.left_button_pressed = False
-
+        return horizontal_angle
         pass
 

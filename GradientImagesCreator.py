@@ -11,8 +11,7 @@ class GradientImagesCreator:
     def __init__(self):
         pass
 
-    #@staticmethod
-    def make_database(self, directory, image_size):
+    def make_database(self, directory, image_size, valid_area):
         random.seed(42)
         image_margin = 0.25
         step = 4
@@ -27,14 +26,17 @@ class GradientImagesCreator:
         positions = torch.cat((x_coordinates, y_coordinates), dim=1)
         data = [['path', 'label']]
         i = 0
-        for angle in range(-90, 90):
+        steps_in_angle = 2
+        for angle_index in range(-90*steps_in_angle, 90*steps_in_angle):
+            angle = angle_index/float(steps_in_angle)
             print(f"angle: {angle}")
-            for ipos in range(0, 10):
-                pos_x = random.uniform(0.40, 0.60)
-                pos_y = random.uniform(0.40, 0.60)
+            for ipos in range(0, 15):
+                da = (1 - valid_area)*0.5
+                pos_x = random.uniform(da, 1.0 - da)
+                pos_y = random.uniform(da, 1.0 - da)
                 pos = torch.tensor([pos_x, pos_y])
                 for n in range(0, 10):
-                    stretch = random.uniform(0.25, 0.75)
+                    stretch = random.uniform(0.20, 0.90)
                     tensor, label = self.create_sample(image_size, pos, stretch, angle)
                     image = to_pil(tensor)
                     path = f"{directory}/{i}.png"

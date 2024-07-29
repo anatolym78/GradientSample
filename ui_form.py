@@ -22,28 +22,28 @@ class Ui_Widget(object):
     def setupUi(self, Widget):
         if not Widget.objectName():
             Widget.setObjectName(u"Widget")
-        Widget.resize(800, 761)
+        Widget.resize(951, 936)
         self.gridLayout = QGridLayout(Widget)
         self.gridLayout.setObjectName(u"gridLayout")
-        self.buttonTest = QPushButton(Widget)
-        self.buttonTest.setObjectName(u"buttonTest")
+        self.graphicsView = QGraphicsView(Widget)
+        self.graphicsView.setObjectName(u"graphicsView")
 
-        self.gridLayout.addWidget(self.buttonTest, 1, 0, 1, 1)
+        self.gridLayout.addWidget(self.graphicsView, 5, 0, 1, 2)
+
+        self.buttonMakeDatabase = QPushButton(Widget)
+        self.buttonMakeDatabase.setObjectName(u"buttonMakeDatabase")
+
+        self.gridLayout.addWidget(self.buttonMakeDatabase, 0, 0, 1, 1)
 
         self.learnButton = QPushButton(Widget)
         self.learnButton.setObjectName(u"learnButton")
 
         self.gridLayout.addWidget(self.learnButton, 0, 1, 1, 1)
 
-        self.graphicsView = QGraphicsView(Widget)
-        self.graphicsView.setObjectName(u"graphicsView")
+        self.buttonTest = QPushButton(Widget)
+        self.buttonTest.setObjectName(u"buttonTest")
 
-        self.gridLayout.addWidget(self.graphicsView, 4, 0, 1, 2)
-
-        self.buttonMakeDatabase = QPushButton(Widget)
-        self.buttonMakeDatabase.setObjectName(u"buttonMakeDatabase")
-
-        self.gridLayout.addWidget(self.buttonMakeDatabase, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.buttonTest, 1, 0, 1, 1)
 
         self.buttonShowKernels = QPushButton(Widget)
         self.buttonShowKernels.setObjectName(u"buttonShowKernels")
@@ -63,9 +63,9 @@ class Ui_Widget(object):
 
     def retranslateUi(self, Widget):
         Widget.setWindowTitle(QCoreApplication.translate("Widget", u"Widget", None))
-        self.buttonTest.setText(QCoreApplication.translate("Widget", u"Test Net", None))
-        self.learnButton.setText(QCoreApplication.translate("Widget", u"Learn Net", None))
         self.buttonMakeDatabase.setText(QCoreApplication.translate("Widget", u"Make database", None))
+        self.learnButton.setText(QCoreApplication.translate("Widget", u"Learn Net", None))
+        self.buttonTest.setText(QCoreApplication.translate("Widget", u"Test Net", None))
         self.buttonShowKernels.setText(QCoreApplication.translate("Widget", u"Show kernels", None))
         self.buttonTestNet2.setText(QCoreApplication.translate("Widget", u"Test Net 2", None))
     # retranslateUi
